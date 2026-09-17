@@ -17,7 +17,7 @@
                               file="config/secure-${mule.env}.yaml"
                               key="${secure.properties.key}"
                               doc:name="Secure properties config">
-        <secure-properties:encrypt algorithm="Blowfish" />
+        <secure-properties:encrypt algorithm="Blowfish" mode="CBC" />
     </secure-properties:config>
 
     <http:listener-config name="httpListenerConfig" doc:name="HTTP Listener config">

@@ -8,9 +8,5 @@ output application/json
   },
   queryParams: {
     id: vars.requestedUserId
-  },
-  headers: {
-    "client-id": p("secure::external.api.clientId"),
-    "client-secret": p("secure::external.api.clientSecret")
   }
 }

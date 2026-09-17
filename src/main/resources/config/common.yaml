@@ -15,4 +15,5 @@ external:
     protocol: "https"
     host: "jsonplaceholder.typicode.com"
     port: "443"
+    responseTimeout: "10000"
     resourcePath: "/users"

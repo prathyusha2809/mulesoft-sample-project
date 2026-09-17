@@ -154,10 +154,6 @@ output application/json
   },
   queryParams: {
     id: vars.requestedUserId
-  },
-  headers: {
-    "client-id": p("secure::external.api.clientId"),
-    "client-secret": p("secure::external.api.clientSecret")
   }
 }
 ```
@@ -190,7 +186,7 @@ var firstRecord = records[0]
 
 ## Interview talking points
 
-For an 8-years-experience discussion, be ready to explain:
+For a senior-level MuleSoft discussion, be ready to explain:
 
 - why properties are externalized by environment
 - when to choose synchronous HTTP orchestration vs. async patterns

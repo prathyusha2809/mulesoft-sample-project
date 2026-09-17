@@ -42,7 +42,7 @@ The sample flow is intentionally small but follows practices that are useful to 
 ## Setup instructions
 
 1. Clone the repository.
-2. Update `/home/runner/work/mulesoft-sample-project/mulesoft-sample-project/src/main/resources/config/common.yaml` with the external API host, path, and any credential values required for your target system.
+2. Update `src/main/resources/config/common.yaml` with the external API host, path, and any credential values required for your target system.
 3. Add more environment files such as `qa.yaml` or `prod.yaml` when you need different runtime settings.
 4. Import the project into Anypoint Studio as an existing Maven project if you want to run it from the IDE.
 

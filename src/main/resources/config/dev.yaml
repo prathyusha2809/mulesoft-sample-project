@@ -1,6 +1,2 @@
 http:
   port: "8081"
-
-external:
-  api:
-    host: "jsonplaceholder.typicode.com"

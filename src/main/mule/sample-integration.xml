@@ -31,7 +31,13 @@
             </http:error-response>
         </http:listener>
 
-        <set-variable variableName="requestedUserId" value="#[(attributes.queryParams.userId default 1) as Number]" doc:name="Capture query parameter" />
+        <set-variable variableName="requestedUserIdRaw" value="#[attributes.queryParams.userId default '1']" doc:name="Capture query parameter" />
+        <choice doc:name="Validate query parameter">
+            <when expression="#[not (vars.requestedUserIdRaw matches /^[0-9]+$/)]">
+                <raise-error type="APP:BAD_REQUEST" description="Query parameter 'userId' must be numeric" />
+            </when>
+        </choice>
+        <set-variable variableName="requestedUserId" value="#[vars.requestedUserIdRaw as Number]" doc:name="Normalize query parameter" />
 
         <logger level="INFO" doc:name="Log request" message='#[write({ flow: "customerProfileFlow", correlationId: correlationId, requestedUserId: vars.requestedUserId }, "application/json")]' />
 
@@ -47,11 +53,8 @@
                       config-ref="externalApiRequestConfig"
                       path="${external.api.resourcePath}"
                       doc:name="Call external API">
-            <http:headers><![CDATA[#[output application/java --- {
-                "client-id": p("external.api.clientId"),
-                "client-secret": p("external.api.clientSecret")
-            }]]]></http:headers>
-            <http:query-params><![CDATA[#[output application/java --- { userId: vars.requestedUserId }]]]></http:query-params>
+            <http:headers><![CDATA[#[vars.outboundRequest.headers]]]></http:headers>
+            <http:query-params><![CDATA[#[vars.outboundRequest.queryParams]]]></http:query-params>
         </http:request>
 
         <ee:transform doc:name="Format API response">

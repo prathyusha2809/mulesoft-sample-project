@@ -52,6 +52,7 @@ The sample flow is intentionally small but follows practices that are useful to 
 
 ```bash
 mvn clean package -Dmule.env=dev
+mvn mule:run -Dmule.env=dev
 ```
 
 ### From Anypoint Studio
@@ -118,8 +119,12 @@ output application/json
     correlationId: correlationId,
     requestedAt: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"}
   },
-  filters: {
+  queryParams: {
     userId: vars.requestedUserId
+  },
+  headers: {
+    "client-id": p("external.api.clientId"),
+    "client-secret": p("external.api.clientSecret")
   }
 }
 ```

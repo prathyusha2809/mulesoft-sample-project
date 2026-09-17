@@ -43,9 +43,16 @@ The sample flow is intentionally small but follows practices that are useful to 
 ## Setup instructions
 
 1. Clone the repository.
-2. Update `src/main/resources/config/common.yaml` with the external API host, path, and any credential values required for your target system.
-3. Add more environment files such as `qa.yaml` or `prod.yaml` when you need different runtime settings.
-4. Import the project into Anypoint Studio as an existing Maven project if you want to run it from the IDE.
+2. Update `src/main/resources/config/common.yaml` with the external API host and path required for your target system.
+3. Export the secure environment variables before running the application:
+
+   ```bash
+   export EXTERNAL_API_CLIENT_ID=your-client-id
+   export EXTERNAL_API_CLIENT_SECRET=your-client-secret
+   ```
+
+4. Add more environment files such as `qa.yaml` or `prod.yaml` when you need different runtime settings.
+5. Import the project into Anypoint Studio as an existing Maven project if you want to run it from the IDE.
 
 ## How to run the project
 
@@ -89,7 +96,7 @@ Example success response:
     "name": "Leanne Graham",
     "username": "Bret",
     "email": "Sincere@april.biz",
-    "company": "Romaguera-Crona",
+    "companyName": "Romaguera-Crona",
     "city": "Gwenborough",
     "sourceSystem": "jsonplaceholder.typicode.com",
     "requestedUserId": 1
@@ -158,8 +165,8 @@ var firstRecord = payload[0]
     name: firstRecord.name default "Unknown",
     username: firstRecord.username default null,
     email: firstRecord.email default null,
-    company: firstRecord.company.name default null,
-    city: firstRecord.address.city default null,
+    companyName: (firstRecord.company default {}).name default null,
+    city: (firstRecord.address default {}).city default null,
     sourceSystem: p("external.api.host"),
     requestedUserId: vars.requestedUserId
   }

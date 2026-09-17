@@ -57,6 +57,15 @@
             <http:query-params><![CDATA[#[vars.outboundRequest.queryParams]]]></http:query-params>
         </http:request>
 
+        <ee:transform doc:name="Parse upstream JSON response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+read(payload, "application/json")]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
         <choice doc:name="Validate upstream response">
             <when expression="#[not (payload is Array)]">
                 <raise-error type="APP:BAD_GATEWAY" description="Expected an array response from the external API" />

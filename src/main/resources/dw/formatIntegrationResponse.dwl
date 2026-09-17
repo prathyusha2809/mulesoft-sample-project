@@ -10,8 +10,8 @@ var firstRecord = payload[0]
     name: firstRecord.name default "Unknown",
     username: firstRecord.username default null,
     email: firstRecord.email default null,
-    company: firstRecord.company.name default null,
-    city: firstRecord.address.city default null,
+    companyName: (firstRecord.company default {}).name default null,
+    city: (firstRecord.address default {}).city default null,
     sourceSystem: p("external.api.host"),
     requestedUserId: vars.requestedUserId
   }

@@ -10,5 +10,5 @@ external:
     host: "jsonplaceholder.typicode.com"
     port: "443"
     resourcePath: "/users"
-    clientId: "replace-me"
-    clientSecret: "replace-me"
+    clientId: "${env.EXTERNAL_API_CLIENT_ID}"
+    clientSecret: "${env.EXTERNAL_API_CLIENT_SECRET}"

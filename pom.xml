@@ -14,7 +14,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <app.runtime>4.6.0</app.runtime>
-        <mule.maven.plugin.version>4.6.0</mule.maven.plugin.version>
         <mule.http.connector.version>1.10.0</mule.http.connector.version>
         <mule.env>dev</mule.env>
     </properties>
@@ -24,7 +23,7 @@
             <plugin>
                 <groupId>org.mule.tools.maven</groupId>
                 <artifactId>mule-maven-plugin</artifactId>
-                <version>${mule.maven.plugin.version}</version>
+                <version>${app.runtime}</version>
                 <extensions>true</extensions>
             </plugin>
         </plugins>

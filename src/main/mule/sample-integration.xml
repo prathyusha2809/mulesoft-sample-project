@@ -108,12 +108,12 @@
             <on-error-propagate type="HTTP:*" logException="true" enableNotifications="true" doc:name="HTTP dependency error handler">
                 <set-variable variableName="httpStatus"
                               value="#[{
-                                  BAD_REQUEST: 400,
-                                  UNAUTHORIZED: 401,
-                                  FORBIDDEN: 403,
-                                  NOT_FOUND: 404,
-                                  METHOD_NOT_ALLOWED: 405,
-                                  TOO_MANY_REQUESTS: 429,
+                                  BAD_REQUEST: 502,
+                                  UNAUTHORIZED: 502,
+                                  FORBIDDEN: 502,
+                                  NOT_FOUND: 502,
+                                  METHOD_NOT_ALLOWED: 502,
+                                  TOO_MANY_REQUESTS: 503,
                                   TIMEOUT: 504,
                                   CONNECTIVITY: 502,
                                   INTERNAL_SERVER_ERROR: 502,

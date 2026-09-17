@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+    <configuration-properties file="config/common.yaml" />
+    <configuration-properties file="config/${mule.env}.yaml" doc:name="Environment properties" />
+
+    <http:listener-config name="httpListenerConfig" doc:name="HTTP Listener config">
+        <http:listener-connection host="${http.host}" port="${http.port}" />
+    </http:listener-config>
+
+    <http:request-config name="externalApiRequestConfig" doc:name="External API request config">
+        <http:request-connection protocol="HTTPS" host="${external.api.host}" port="${external.api.port}" />
+    </http:request-config>
+
+    <flow name="customerProfileFlow">
+        <http:listener config-ref="httpListenerConfig" path="/api/v1/customer-profile" doc:name="HTTP Listener">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[output application/java --- {"Content-Type": "application/json"}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[output application/java --- {"Content-Type": "application/json"}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+
+        <set-variable variableName="requestedUserId" value="#[(attributes.queryParams.userId default 1) as Number]" doc:name="Capture query parameter" />
+
+        <logger level="INFO" doc:name="Log request" message='#[write({ flow: "customerProfileFlow", correlationId: correlationId, requestedUserId: vars.requestedUserId }, "application/json")]' />
+
+        <ee:transform doc:name="Prepare outbound request">
+            <ee:message>
+                <ee:set-payload resource="dw/buildExternalRequest.dwl" />
+            </ee:message>
+        </ee:transform>
+        <set-variable variableName="outboundRequest" value="#[payload]" doc:name="Store transformed request" />
+        <logger level="DEBUG" doc:name="Log outbound request model" message='#[write(vars.outboundRequest, "application/json")]' />
+
+        <http:request method="GET"
+                      config-ref="externalApiRequestConfig"
+                      path="${external.api.resourcePath}"
+                      doc:name="Call external API">
+            <http:headers><![CDATA[#[output application/java --- {
+                "client-id": p("external.api.clientId"),
+                "client-secret": p("external.api.clientSecret")
+            }]]]></http:headers>
+            <http:query-params><![CDATA[#[output application/java --- { userId: vars.requestedUserId }]]]></http:query-params>
+        </http:request>
+
+        <ee:transform doc:name="Format API response">
+            <ee:message>
+                <ee:set-payload resource="dw/formatIntegrationResponse.dwl" />
+            </ee:message>
+        </ee:transform>
+
+        <error-handler>
+            <on-error-propagate logException="true" enableNotifications="true" doc:name="API error handler">
+                <set-variable variableName="httpStatus" value="#[if ((error.description default '') contains '404') 404 else 502]" doc:name="Set status code" />
+                <ee:transform doc:name="Build error payload">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "ERROR",
+  correlationId: correlationId,
+  message: error.description default "Unable to complete the external API call",
+  failureType: error.errorType.identifier,
+  requestedUserId: vars.requestedUserId default null
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+</mule>

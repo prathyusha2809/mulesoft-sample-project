@@ -1,23 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
       xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
       xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="
         http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
         http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
         http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 
     <configuration-properties file="config/common.yaml" />
     <configuration-properties file="config/${mule.env}.yaml" doc:name="Environment properties" />
+    <secure-properties:config name="Secure_Properties_Config"
+                              file="config/secure-${mule.env}.yaml"
+                              key="${secure.properties.key}"
+                              doc:name="Secure properties config">
+        <secure-properties:encrypt algorithm="Blowfish" />
+    </secure-properties:config>
 
     <http:listener-config name="httpListenerConfig" doc:name="HTTP Listener config">
         <http:listener-connection host="${http.host}" port="${http.port}" />
     </http:listener-config>
 
     <http:request-config name="externalApiRequestConfig" doc:name="External API request config">
-        <http:request-connection protocol="HTTPS" host="${external.api.host}" port="${external.api.port}" />
+        <http:request-connection protocol="${external.api.protocol}" host="${external.api.host}" port="${external.api.port}" />
     </http:request-config>
 
     <flow name="customerProfileFlow">
@@ -58,14 +66,6 @@
                 <http:query-params><![CDATA[#[vars.outboundRequest.queryParams]]]></http:query-params>
             </http:request>
 
-            <ee:transform doc:name="Parse upstream JSON response">
-                <ee:message>
-                    <ee:set-payload><![CDATA[%dw 2.0
-output application/java
----
-read(payload, "application/json")]]></ee:set-payload>
-                </ee:message>
-            </ee:transform>
             <error-handler>
                 <on-error-propagate type="HTTP:NOT_FOUND" doc:name="Normalize upstream 404">
                     <raise-error type="APP:NOT_FOUND" description="No customer profile found for the requested userId" />

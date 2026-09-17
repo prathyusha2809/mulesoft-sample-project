@@ -37,6 +37,12 @@
             <version>${mule.http.connector.version}</version>
             <classifier>mule-plugin</classifier>
         </dependency>
+        <dependency>
+            <groupId>org.mule.module</groupId>
+            <artifactId>mule-secure-configuration-properties-module</artifactId>
+            <version>1.2.5</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
     </dependencies>
 
     <repositories>

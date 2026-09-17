@@ -25,7 +25,8 @@ The sample flow is intentionally small but follows practices that are useful to 
 │       └── resources
 │           ├── config
 │           │   ├── common.yaml
-│           │   └── dev.yaml
+│           │   ├── dev.yaml
+│           │   └── secure-dev.yaml
 │           └── dw
 │               ├── buildExternalRequest.dwl
 │               ├── formatErrorResponse.dwl
@@ -43,16 +44,17 @@ The sample flow is intentionally small but follows practices that are useful to 
 ## Setup instructions
 
 1. Clone the repository.
-2. Update `src/main/resources/config/common.yaml` with the external API host and path required for your target system.
-3. Export the secure environment variables before running the application:
+2. Update `src/main/resources/config/common.yaml` with the external API protocol, host, port, and path required for your target system.
+3. Replace the sample encrypted values in `src/main/resources/config/secure-dev.yaml` with encrypted client credentials for your target API.
+4. Export the secure properties key before running the application:
 
    ```bash
-   export EXTERNAL_API_CLIENT_ID=your-client-id
-   export EXTERNAL_API_CLIENT_SECRET=your-client-secret
+   export SECURE_PROPERTIES_KEY=your-secure-properties-key
    ```
 
-4. Add more environment files such as `qa.yaml` or `prod.yaml` when you need different runtime settings.
-5. Import the project into Anypoint Studio as an existing Maven project if you want to run it from the IDE.
+5. Add more environment files such as `qa.yaml`, `prod.yaml`, and matching secure property files when you need different runtime settings.
+6. Keep `external.api.clientId` and `external.api.clientSecret` populated in the secure config even if your target API ignores them, or remove the headers from the sample flow.
+7. Import the project into Anypoint Studio as an existing Maven project if you want to run it from the IDE.
 
 ## How to run the project
 
@@ -154,8 +156,8 @@ output application/json
     id: vars.requestedUserId
   },
   headers: {
-    "client-id": p("external.api.clientId"),
-    "client-secret": p("external.api.clientSecret")
+    "client-id": p("secure::external.api.clientId"),
+    "client-secret": p("secure::external.api.clientSecret")
   }
 }
 ```

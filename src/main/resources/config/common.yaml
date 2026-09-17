@@ -1,14 +1,17 @@
 mule:
   env: "dev"
 
+secure:
+  properties:
+    key: "${env.SECURE_PROPERTIES_KEY}"
+
 http:
   host: "0.0.0.0"
   port: "8081"
 
 external:
   api:
+    protocol: "HTTPS"
     host: "jsonplaceholder.typicode.com"
     port: "443"
     resourcePath: "/users"
-    clientId: "${env.EXTERNAL_API_CLIENT_ID}"
-    clientSecret: "${env.EXTERNAL_API_CLIENT_SECRET}"

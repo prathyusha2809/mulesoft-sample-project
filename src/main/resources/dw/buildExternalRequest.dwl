@@ -10,7 +10,7 @@ output application/json
     id: vars.requestedUserId
   },
   headers: {
-    "client-id": p("external.api.clientId"),
-    "client-secret": p("external.api.clientSecret")
+    "client-id": p("secure::external.api.clientId"),
+    "client-secret": p("secure::external.api.clientSecret")
   }
 }

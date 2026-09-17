@@ -9,6 +9,6 @@ external:
   api:
     host: "jsonplaceholder.typicode.com"
     port: "443"
-    resourcePath: "/posts"
+    resourcePath: "/users"
     clientId: "replace-me"
     clientSecret: "replace-me"

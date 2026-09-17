@@ -28,6 +28,7 @@ The sample flow is intentionally small but follows practices that are useful to 
 │           │   └── dev.yaml
 │           └── dw
 │               ├── buildExternalRequest.dwl
+│               ├── formatErrorResponse.dwl
 │               └── formatIntegrationResponse.dwl
 └── .gitignore
 ```
@@ -69,7 +70,7 @@ By default, the app listens on `http://0.0.0.0:8081`.
 
 Accepts an optional query parameter:
 
-- `userId` - numeric identifier forwarded to the sample upstream API. Defaults to `1`.
+- `userId` - numeric identifier forwarded to the sample upstream API as `id`. Defaults to `1`.
 
 Example request:
 
@@ -85,14 +86,25 @@ Example success response:
   "correlationId": "f4d0e4b8-95f6-11ef-bdd4-0242ac120002",
   "data": {
     "id": 1,
-    "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+    "name": "Leanne Graham",
+    "username": "Bret",
+    "email": "Sincere@april.biz",
+    "company": "Romaguera-Crona",
+    "city": "Gwenborough",
     "sourceSystem": "jsonplaceholder.typicode.com",
     "requestedUserId": 1
   }
 }
 ```
 
-Example error response:
+Expected error statuses:
+
+- `400` for invalid `userId` input
+- `404` when no matching profile is returned by the upstream service
+- `502`/`503`/`504` for upstream dependency issues
+- `500` for unexpected application failures
+
+Example error response (`404` or `502`, depending on the failure type):
 
 ```json
 {
@@ -120,7 +132,7 @@ output application/json
     requestedAt: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"}
   },
   queryParams: {
-    userId: vars.requestedUserId
+    id: vars.requestedUserId
   },
   headers: {
     "client-id": p("external.api.clientId"),
@@ -136,14 +148,18 @@ output application/json
 ```dw
 %dw 2.0
 output application/json
-var firstRecord = (payload default [])[0] default {}
+var firstRecord = payload[0]
 ---
 {
   status: "SUCCESS",
   correlationId: correlationId,
   data: {
-    id: firstRecord.id default null,
-    title: firstRecord.title default "Unavailable",
+    id: firstRecord.id,
+    name: firstRecord.name default "Unknown",
+    username: firstRecord.username default null,
+    email: firstRecord.email default null,
+    company: firstRecord.company.name default null,
+    city: firstRecord.address.city default null,
     sourceSystem: p("external.api.host"),
     requestedUserId: vars.requestedUserId
   }

@@ -7,7 +7,7 @@ output application/json
     requestedAt: now() as String {format: "yyyy-MM-dd'T'HH:mm:ssXXX"}
   },
   queryParams: {
-    userId: vars.requestedUserId
+    id: vars.requestedUserId
   },
   headers: {
     "client-id": p("external.api.clientId"),

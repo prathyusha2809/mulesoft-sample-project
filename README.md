@@ -111,7 +111,19 @@ Expected error statuses:
 - `502`/`503`/`504` for upstream dependency issues
 - `500` for unexpected application failures
 
-Example error response (`404` or `502`, depending on the failure type):
+Example `404 Not Found` response:
+
+```json
+{
+  "status": "ERROR",
+  "correlationId": "f4d0e4b8-95f6-11ef-bdd4-0242ac120002",
+  "message": "No customer profile found for the requested userId",
+  "failureType": "NOT_FOUND",
+  "requestedUserId": 999
+}
+```
+
+Example `502 Bad Gateway` response:
 
 ```json
 {

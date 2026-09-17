@@ -1,7 +1,3 @@
 {
-  "minMuleVersion": "4.6.0",
-  "secureProperties": [
-    "external.api.clientId",
-    "external.api.clientSecret"
-  ]
+  "minMuleVersion": "4.6.0"
 }

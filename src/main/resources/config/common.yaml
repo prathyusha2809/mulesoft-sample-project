@@ -11,7 +11,7 @@ http:
 
 external:
   api:
-    protocol: "HTTPS"
+    protocol: "https"
     host: "jsonplaceholder.typicode.com"
     port: "443"
     resourcePath: "/users"

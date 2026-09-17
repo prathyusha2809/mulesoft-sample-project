@@ -57,21 +57,13 @@
         <set-variable variableName="outboundRequest" value="#[payload]" doc:name="Store transformed request" />
         <logger level="DEBUG" doc:name="Log outbound request model" message='#[write(vars.outboundRequest, "application/json")]' />
 
-        <try doc:name="Fetch upstream customer profile">
-            <http:request method="GET"
-                          config-ref="externalApiRequestConfig"
-                          path="${external.api.resourcePath}"
-                          doc:name="Call external API">
-                <http:headers><![CDATA[#[vars.outboundRequest.headers]]]></http:headers>
-                <http:query-params><![CDATA[#[vars.outboundRequest.queryParams]]]></http:query-params>
-            </http:request>
-
-            <error-handler>
-                <on-error-propagate type="HTTP:NOT_FOUND" doc:name="Normalize upstream 404">
-                    <raise-error type="APP:NOT_FOUND" description="No customer profile found for the requested userId" />
-                </on-error-propagate>
-            </error-handler>
-        </try>
+        <http:request method="GET"
+                      config-ref="externalApiRequestConfig"
+                      path="${external.api.resourcePath}"
+                      doc:name="Call external API">
+            <http:headers><![CDATA[#[vars.outboundRequest.headers]]]></http:headers>
+            <http:query-params><![CDATA[#[vars.outboundRequest.queryParams]]]></http:query-params>
+        </http:request>
 
         <choice doc:name="Validate upstream response">
             <when expression="#[not (payload is Array)]">

@@ -13,3 +13,7 @@
 *.tmp
 *.bak
 .DS_Store
+
+# Local secure property files
+src/main/resources/config/secure-*.yaml
+!src/main/resources/config/secure-*.yaml.example

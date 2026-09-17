@@ -26,7 +26,7 @@ The sample flow is intentionally small but follows practices that are useful to 
 │           ├── config
 │           │   ├── common.yaml
 │           │   ├── dev.yaml
-│           │   └── secure-dev.yaml
+│           │   └── secure-dev.yaml.example
 │           └── dw
 │               ├── buildExternalRequest.dwl
 │               ├── formatErrorResponse.dwl
@@ -45,16 +45,26 @@ The sample flow is intentionally small but follows practices that are useful to 
 
 1. Clone the repository.
 2. Update `src/main/resources/config/common.yaml` with the external API protocol, host, port, and path required for your target system.
-3. Replace the sample encrypted values in `src/main/resources/config/secure-dev.yaml` with encrypted client credentials for your target API.
-4. Export the secure properties key before running the application:
+3. Copy `src/main/resources/config/secure-dev.yaml.example` to `src/main/resources/config/secure-dev.yaml`.
+4. Encrypt your client credentials with MuleSoft's secure-properties tool using the same algorithm configured in `src/main/mule/sample-integration.xml`:
+
+   ```bash
+   java -cp secure-properties-tool.jar \
+     com.mulesoft.tools.SecurePropertiesTool string encrypt Blowfish CBC \
+     your-secure-properties-key your-client-secret
+   ```
+
+   Replace the example values in `src/main/resources/config/secure-dev.yaml` with the generated `![...]` values for both `clientId` and `clientSecret`.
+
+5. Export the secure properties key before running the application:
 
    ```bash
    export SECURE_PROPERTIES_KEY=your-secure-properties-key
    ```
 
-5. Add more environment files such as `qa.yaml`, `prod.yaml`, and matching secure property files when you need different runtime settings.
-6. Keep `external.api.clientId` and `external.api.clientSecret` populated in the secure config even if your target API ignores them, or remove the headers from the sample flow.
-7. Import the project into Anypoint Studio as an existing Maven project if you want to run it from the IDE.
+6. Add more environment files such as `qa.yaml`, `prod.yaml`, and matching secure property files when you need different runtime settings.
+7. Keep `external.api.clientId` and `external.api.clientSecret` populated in the secure config even if your target API ignores them, or remove the headers from the sample flow.
+8. Import the project into Anypoint Studio as an existing Maven project if you want to run it from the IDE.
 
 ## How to run the project
 

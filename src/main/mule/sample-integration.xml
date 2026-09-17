@@ -25,10 +25,9 @@
     </http:listener-config>
 
     <http:request-config name="externalApiRequestConfig" doc:name="External API request config">
-        <http:request-connection protocol="${external.api.protocol}"
-                                 host="${external.api.host}"
-                                 port="${external.api.port}"
-                                 responseTimeout="${external.api.responseTimeout}" />
+    <http:request-connection protocol="${external.api.protocol}"
+                             host="${external.api.host}"
+                             port="${external.api.port}" />
     </http:request-config>
 
     <flow name="customerProfileFlow">
@@ -64,6 +63,7 @@
         <http:request method="GET"
                       config-ref="externalApiRequestConfig"
                       path="${external.api.resourcePath}"
+                      responseTimeout="${external.api.responseTimeout}"
                       doc:name="Call external API">
             <http:headers><![CDATA[#[output application/java --- {
                 "client-id": p("secure::external.api.clientId"),

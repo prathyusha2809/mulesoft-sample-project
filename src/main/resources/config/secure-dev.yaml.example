@@ -1,0 +1,4 @@
+external:
+  api:
+    clientId: "![replace-with-encrypted-client-id]"
+    clientSecret: "![replace-with-encrypted-client-secret]"

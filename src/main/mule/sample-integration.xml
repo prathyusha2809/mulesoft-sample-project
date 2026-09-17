@@ -39,7 +39,7 @@
             </http:error-response>
         </http:listener>
 
-        <set-variable variableName="requestedUserIdRaw" value="#[attributes.queryParams.userId default '1']" doc:name="Capture query parameter" />
+        <set-variable variableName="requestedUserIdRaw" value="#[trim((attributes.queryParams.userId default '1') as String)]" doc:name="Capture query parameter" />
         <choice doc:name="Validate query parameter">
             <when expression="#[not (vars.requestedUserIdRaw matches /^[0-9]+$/)]">
                 <raise-error type="APP:BAD_REQUEST" description="Query parameter 'userId' must be numeric" />

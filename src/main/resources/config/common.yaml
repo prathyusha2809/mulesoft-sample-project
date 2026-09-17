@@ -3,6 +3,7 @@ mule:
 
 secure:
   properties:
+    # Required at startup to decrypt values in config/secure-<env>.yaml.
     key: "${env.SECURE_PROPERTIES_KEY}"
 
 http:

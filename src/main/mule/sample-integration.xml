@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+    <configuration-properties file="config/common.yaml" />
+    <configuration-properties file="config/${mule.env}.yaml" doc:name="Environment properties" />
+    <secure-properties:config name="Secure_Properties_Config"
+                              file="config/secure-${mule.env}.yaml"
+                              key="${secure.properties.key}"
+                              doc:name="Secure properties config">
+        <secure-properties:encrypt algorithm="AES" mode="CBC" />
+    </secure-properties:config>
+
+    <http:listener-config name="httpListenerConfig" doc:name="HTTP Listener config">
+        <http:listener-connection host="${http.host}" port="${http.port}" />
+    </http:listener-config>
+
+    <http:request-config name="externalApiRequestConfig" doc:name="External API request config">
+    <http:request-connection protocol="${external.api.protocol}"
+                             host="${external.api.host}"
+                             port="${external.api.port}" />
+    </http:request-config>
+
+    <flow name="customerProfileFlow">
+        <http:listener config-ref="httpListenerConfig" path="/api/v1/customer-profile" doc:name="HTTP Listener">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[output application/java --- {"Content-Type": "application/json"}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[output application/java --- {"Content-Type": "application/json"}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+
+        <set-variable variableName="requestedUserIdRaw" value="#[trim((attributes.queryParams.userId default '1') as String)]" doc:name="Capture query parameter" />
+        <choice doc:name="Validate query parameter">
+            <when expression="#[not (vars.requestedUserIdRaw matches /^[0-9]+$/)]">
+                <raise-error type="APP:BAD_REQUEST" description="Query parameter 'userId' must be numeric" />
+            </when>
+        </choice>
+        <set-variable variableName="requestedUserId" value="#[vars.requestedUserIdRaw as Number]" doc:name="Normalize query parameter" />
+        <set-variable variableName="externalApiHost" value="${external.api.host}" doc:name="Capture external API host" />
+
+        <logger level="INFO" doc:name="Log request" message='#[write({ flow: "customerProfileFlow", correlationId: correlationId, requestedUserId: vars.requestedUserId }, "application/json")]' />
+
+        <ee:transform doc:name="Prepare outbound request">
+            <ee:message>
+                <ee:set-payload resource="dw/buildExternalRequest.dwl" />
+            </ee:message>
+        </ee:transform>
+        <set-variable variableName="outboundRequest" value="#[payload]" doc:name="Store transformed request" />
+        <logger level="DEBUG" doc:name="Log outbound request model" message='#[write(vars.outboundRequest, "application/json")]' />
+
+        <http:request method="GET"
+                      config-ref="externalApiRequestConfig"
+                      path="${external.api.resourcePath}"
+                      responseTimeout="${external.api.responseTimeout}"
+                      doc:name="Call external API">
+            <http:headers><![CDATA[#[output application/java ---
+                if (p("external.api.sendCredentials") == "true")
+                  {
+                    "client-id": p("secure::external.api.clientId"),
+                    "client-secret": p("secure::external.api.clientSecret")
+                  }
+                else
+                  {}
+            ]]]></http:headers>
+            <http:query-params><![CDATA[#[vars.outboundRequest.queryParams]]]></http:query-params>
+        </http:request>
+
+        <choice doc:name="Validate upstream response">
+            <when expression="#[not (payload is Array)]">
+                <raise-error type="APP:BAD_GATEWAY" description="Expected an array response from the external API" />
+            </when>
+            <when expression="#[isEmpty(payload)]">
+                <raise-error type="APP:NOT_FOUND" description="No customer profile found for the requested userId" />
+            </when>
+        </choice>
+
+        <ee:transform doc:name="Format API response">
+            <ee:message>
+                <ee:set-payload resource="dw/formatIntegrationResponse.dwl" />
+            </ee:message>
+        </ee:transform>
+
+        <error-handler>
+            <on-error-propagate type="APP:*" logException="true" enableNotifications="true" doc:name="Application error handler">
+                <set-variable variableName="httpStatus"
+                              value="#[
+                                  if (error.errorType.namespace == 'APP' and error.errorType.identifier == 'BAD_REQUEST') 400
+                                  else if (error.errorType.namespace == 'APP' and error.errorType.identifier == 'NOT_FOUND') 404
+                                  else if (error.errorType.namespace == 'APP' and error.errorType.identifier == 'BAD_GATEWAY') 502
+                                  else 500
+                              ]"
+                              doc:name="Set status code" />
+                <set-variable variableName="errorMessage" value="#[error.description default 'Unable to complete the external API call']" doc:name="Set error message" />
+                <set-variable variableName="failureType" value="#[error.errorType.identifier default 'UNKNOWN']" doc:name="Set failure type" />
+                <ee:transform doc:name="Build application error payload">
+                    <ee:message>
+                        <ee:set-payload resource="dw/formatErrorResponse.dwl" />
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="HTTP:*" logException="true" enableNotifications="true" doc:name="HTTP dependency error handler">
+                <set-variable variableName="httpStatus"
+                              value="#[
+                                  if ((error.errorMessage.attributes.statusCode default null) != null)
+                                    (error.errorMessage.attributes.statusCode as Number)
+                                  else
+                                    {
+                                      TOO_MANY_REQUESTS: 503,
+                                      TIMEOUT: 504,
+                                      CONNECTIVITY: 502,
+                                      INTERNAL_SERVER_ERROR: 502,
+                                      BAD_GATEWAY: 502,
+                                      SERVICE_UNAVAILABLE: 503
+                                    }[error.errorType.identifier] default 502
+                              ]"
+                              doc:name="Set status code" />
+                <set-variable variableName="errorMessage" value="#['Unable to complete the external API call']" doc:name="Set error message" />
+                <set-variable variableName="failureType" value="#[error.errorType.identifier default 'UNKNOWN']" doc:name="Set failure type" />
+                <ee:transform doc:name="Build dependency error payload">
+                    <ee:message>
+                        <ee:set-payload resource="dw/formatErrorResponse.dwl" />
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate logException="true" enableNotifications="true" doc:name="Fallback error handler">
+                <set-variable variableName="httpStatus" value="#[500]" doc:name="Set status code" />
+                <set-variable variableName="errorMessage" value="#['Unable to complete the external API call']" doc:name="Set error message" />
+                <set-variable variableName="failureType" value="#[error.errorType.identifier default 'UNKNOWN']" doc:name="Set failure type" />
+                <ee:transform doc:name="Build fallback error payload">
+                    <ee:message>
+                        <ee:set-payload resource="dw/formatErrorResponse.dwl" />
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+</mule>

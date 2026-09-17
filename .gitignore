@@ -1,0 +1,19 @@
+/target/
+/.mule/
+
+# IDE files
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+
+# Logs and local files
+*.log
+*.tmp
+*.bak
+.DS_Store
+
+# Local secure property files
+src/main/resources/config/secure-*.yaml
+!src/main/resources/config/secure-*.yaml.example

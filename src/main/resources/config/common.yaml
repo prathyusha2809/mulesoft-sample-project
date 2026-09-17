@@ -1,0 +1,17 @@
+secure:
+  properties:
+    # Required at startup to decrypt values in config/secure-<env>.yaml.
+    key: "${env.SECURE_PROPERTIES_KEY}"
+
+http:
+  host: "0.0.0.0"
+  port: "8081"
+
+external:
+  api:
+    protocol: "https"
+    host: "jsonplaceholder.typicode.com"
+    port: "443"
+    responseTimeout: "10s"
+    resourcePath: "/users"
+    sendCredentials: "false"

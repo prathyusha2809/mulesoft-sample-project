@@ -17,7 +17,7 @@
                               file="config/secure-${mule.env}.yaml"
                               key="${secure.properties.key}"
                               doc:name="Secure properties config">
-        <secure-properties:encrypt algorithm="Blowfish" mode="CBC" />
+        <secure-properties:encrypt algorithm="AES" mode="CBC" />
     </secure-properties:config>
 
     <http:listener-config name="httpListenerConfig" doc:name="HTTP Listener config">
@@ -65,10 +65,15 @@
                       path="${external.api.resourcePath}"
                       responseTimeout="${external.api.responseTimeout}"
                       doc:name="Call external API">
-            <http:headers><![CDATA[#[output application/java --- {
-                "client-id": p("secure::external.api.clientId"),
-                "client-secret": p("secure::external.api.clientSecret")
-            }]]]></http:headers>
+            <http:headers><![CDATA[#[output application/java ---
+                if (p("external.api.sendCredentials") == "true")
+                  {
+                    "client-id": p("secure::external.api.clientId"),
+                    "client-secret": p("secure::external.api.clientSecret")
+                  }
+                else
+                  {}
+            ]]]></http:headers>
             <http:query-params><![CDATA[#[vars.outboundRequest.queryParams]]]></http:query-params>
         </http:request>
 
@@ -107,19 +112,19 @@
             </on-error-propagate>
             <on-error-propagate type="HTTP:*" logException="true" enableNotifications="true" doc:name="HTTP dependency error handler">
                 <set-variable variableName="httpStatus"
-                              value="#[{
-                                  BAD_REQUEST: 502,
-                                  UNAUTHORIZED: 502,
-                                  FORBIDDEN: 502,
-                                  NOT_FOUND: 502,
-                                  METHOD_NOT_ALLOWED: 502,
-                                  TOO_MANY_REQUESTS: 503,
-                                  TIMEOUT: 504,
-                                  CONNECTIVITY: 502,
-                                  INTERNAL_SERVER_ERROR: 502,
-                                  BAD_GATEWAY: 502,
-                                  SERVICE_UNAVAILABLE: 503
-                              }[error.errorType.identifier] default 502]"
+                              value="#[
+                                  if ((error.errorMessage.attributes.statusCode default null) != null)
+                                    (error.errorMessage.attributes.statusCode as Number)
+                                  else
+                                    {
+                                      TOO_MANY_REQUESTS: 503,
+                                      TIMEOUT: 504,
+                                      CONNECTIVITY: 502,
+                                      INTERNAL_SERVER_ERROR: 502,
+                                      BAD_GATEWAY: 502,
+                                      SERVICE_UNAVAILABLE: 503
+                                    }[error.errorType.identifier] default 502
+                              ]"
                               doc:name="Set status code" />
                 <set-variable variableName="errorMessage" value="#['Unable to complete the external API call']" doc:name="Set error message" />
                 <set-variable variableName="failureType" value="#[error.errorType.identifier default 'UNKNOWN']" doc:name="Set failure type" />

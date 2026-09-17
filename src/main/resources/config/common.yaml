@@ -14,3 +14,4 @@ external:
     port: "443"
     responseTimeout: "10s"
     resourcePath: "/users"
+    sendCredentials: "false"

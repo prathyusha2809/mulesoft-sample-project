@@ -50,11 +50,11 @@ The sample flow is intentionally small but follows practices that are useful to 
 
    ```bash
    java -cp secure-properties-tool.jar \
-     com.mulesoft.tools.SecurePropertiesTool string encrypt Blowfish CBC \
+     com.mulesoft.tools.SecurePropertiesTool string encrypt AES CBC \
      your-secure-properties-key your-client-id
 
    java -cp secure-properties-tool.jar \
-     com.mulesoft.tools.SecurePropertiesTool string encrypt Blowfish CBC \
+     com.mulesoft.tools.SecurePropertiesTool string encrypt AES CBC \
      your-secure-properties-key your-client-secret
    ```
 
@@ -67,7 +67,7 @@ The sample flow is intentionally small but follows practices that are useful to 
    ```
 
 6. Add more environment files such as `qa.yaml`, `prod.yaml`, and matching secure property files when you need different runtime settings.
-7. Keep `external.api.clientId` and `external.api.clientSecret` populated in the secure config even if your target API ignores them, or remove the headers from the sample flow.
+7. Set `external.api.sendCredentials` to `"true"` only when your target API expects `client-id` and `client-secret` headers.
 8. Import the project into Anypoint Studio as an existing Maven project if you want to run it from the IDE.
 
 ## How to run the project

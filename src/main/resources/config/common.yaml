@@ -1,6 +1,3 @@
-mule:
-  env: "dev"
-
 secure:
   properties:
     # Required at startup to decrypt values in config/secure-<env>.yaml.

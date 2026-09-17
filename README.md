@@ -51,6 +51,10 @@ The sample flow is intentionally small but follows practices that are useful to 
    ```bash
    java -cp secure-properties-tool.jar \
      com.mulesoft.tools.SecurePropertiesTool string encrypt Blowfish CBC \
+     your-secure-properties-key your-client-id
+
+   java -cp secure-properties-tool.jar \
+     com.mulesoft.tools.SecurePropertiesTool string encrypt Blowfish CBC \
      your-secure-properties-key your-client-secret
    ```
 

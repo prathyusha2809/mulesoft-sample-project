@@ -98,6 +98,7 @@
                               ]"
                               doc:name="Set status code" />
                 <set-variable variableName="errorMessage" value="#[error.description default 'Unable to complete the external API call']" doc:name="Set error message" />
+                <set-variable variableName="failureType" value="#[error.errorType.identifier default 'UNKNOWN']" doc:name="Set failure type" />
                 <ee:transform doc:name="Build application error payload">
                     <ee:message>
                         <ee:set-payload resource="dw/formatErrorResponse.dwl" />
@@ -121,6 +122,7 @@
                               }[error.errorType.identifier] default 502]"
                               doc:name="Set status code" />
                 <set-variable variableName="errorMessage" value="#['Unable to complete the external API call']" doc:name="Set error message" />
+                <set-variable variableName="failureType" value="#[error.errorType.identifier default 'UNKNOWN']" doc:name="Set failure type" />
                 <ee:transform doc:name="Build dependency error payload">
                     <ee:message>
                         <ee:set-payload resource="dw/formatErrorResponse.dwl" />
@@ -130,6 +132,7 @@
             <on-error-propagate logException="true" enableNotifications="true" doc:name="Fallback error handler">
                 <set-variable variableName="httpStatus" value="#[500]" doc:name="Set status code" />
                 <set-variable variableName="errorMessage" value="#['Unable to complete the external API call']" doc:name="Set error message" />
+                <set-variable variableName="failureType" value="#[error.errorType.identifier default 'UNKNOWN']" doc:name="Set failure type" />
                 <ee:transform doc:name="Build fallback error payload">
                     <ee:message>
                         <ee:set-payload resource="dw/formatErrorResponse.dwl" />

@@ -169,7 +169,8 @@ output application/json
 ```dw
 %dw 2.0
 output application/json
-var firstRecord = payload[0]
+var records = payload as Array
+var firstRecord = records[0]
 ---
 {
   status: "SUCCESS",
@@ -181,7 +182,7 @@ var firstRecord = payload[0]
     email: firstRecord.email default null,
     companyName: (firstRecord.company default {}).name default null,
     city: (firstRecord.address default {}).city default null,
-    sourceSystem: p("external.api.host"),
+    sourceSystem: vars.externalApiHost,
     requestedUserId: vars.requestedUserId
   }
 }

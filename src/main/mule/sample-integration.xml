@@ -46,6 +46,7 @@
             </when>
         </choice>
         <set-variable variableName="requestedUserId" value="#[vars.requestedUserIdRaw as Number]" doc:name="Normalize query parameter" />
+        <set-variable variableName="externalApiHost" value="${external.api.host}" doc:name="Capture external API host" />
 
         <logger level="INFO" doc:name="Log request" message='#[write({ flow: "customerProfileFlow", correlationId: correlationId, requestedUserId: vars.requestedUserId }, "application/json")]' />
 
@@ -83,11 +84,12 @@
         <error-handler>
             <on-error-propagate type="APP:*" logException="true" enableNotifications="true" doc:name="Application error handler">
                 <set-variable variableName="httpStatus"
-                              value="#[{
-                                  BAD_REQUEST: 400,
-                                  NOT_FOUND: 404,
-                                  BAD_GATEWAY: 502
-                              }[error.errorType.identifier] default 500]"
+                              value="#[
+                                  if (error.errorType.namespace == 'APP' and error.errorType.identifier == 'BAD_REQUEST') 400
+                                  else if (error.errorType.namespace == 'APP' and error.errorType.identifier == 'NOT_FOUND') 404
+                                  else if (error.errorType.namespace == 'APP' and error.errorType.identifier == 'BAD_GATEWAY') 502
+                                  else 500
+                              ]"
                               doc:name="Set status code" />
                 <ee:transform doc:name="Build application error payload">
                     <ee:message>
